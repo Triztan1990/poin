@@ -1,0 +1,167 @@
+<!DOCTYPE html>  
+<html lang="id">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">  
+  <title>Hitung Poin HomeSol</title>  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+    
+  <!-- Script Failsafe Splash Screen -->  
+    
+
+
+
+</head>  
+<body class="">  
+  <!-- Splash Screen -->  
+  <div id="splashScreen" class="splash-screen">  
+    <i class="fas fa-crown crown-icon" style="font-size: 50px; color: gold;"></i>  
+    <h1>Hitung Poin HomeSol</h1>  
+  </div>  
+
+  <!-- Konten Aplikasi Utama (Awalnya Tersembunyi) -->  
+  <div id="mainApp" class="container" style="display:none;">  
+    <!-- Header -->  
+    <div class="app-header">  
+      <i class="fas fa-crown crown-icon"></i>  
+      <h1 style="font-weight:600; margin: 0;">HomeSol Points</h1>  
+      <div class="status-container">  
+         <span id="statusOnline" class="status-indikator offline">  
+             <div class="spinner"></div>  
+             <span class="status-text">Offline</span>  
+         </span>  
+         <button id="darkModeToggle" title="Ganti Tema"><i class="fa-solid fa-moon"></i></button>  
+      </div>  
+    </div>  
+
+    <!-- Navigasi Tab -->  
+    <div class="tabs">  
+      <button class="tablink active" onclick="showTab('formTab', this)"><i class="fa-solid fa-pen-to-square"></i> Form</button>  
+      <button class="tablink" onclick="showTab('chartTab', this)"><i class="fa-solid fa-chart-pie"></i> Grafik</button>  
+      <button class="tablink" onclick="showTab('statTab', this)"><i class="fa-solid fa-chart-line"></i> Statistik</button>  
+    </div>  
+
+    <!-- Konten Tab: Form -->  
+    <div id="formTab" class="tabcontent active-content">  
+      <div class="card">  
+        <h3><i class="fa-solid fa-plus"></i> Tambah Kerjaan Baru</h3>  
+        <table>  
+          <tr><td>Tanggal</td><td><input type="date" id="tanggal"></td></tr>  
+          <tr><td>Layanan</td><td><select id="layanan" required><option value="">Memuat...</option></select></td></tr>  
+          <tr><td>Paket</td><td><select id="paket" required><option value="">Pilih Layanan Dulu</option></select></td></tr>  
+          <tr><td>Jumlah</td><td><input type="number" id="jumlah" min="1" value="1" oninput="updatePointByJumlah()"></td></tr>  
+          <tr><td>Point</td><td>  
+            <div class="point-action">  
+              <div>  
+                <span id="poinSatuan">0</span> × <span id="displayJumlah">1</span> = <strong id="poin">0</strong>  
+              </div>  
+              <button id="btnTambah" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Tambah</button>  
+            </div>  
+          </td></tr>  
+        </table>  
+      </div>  
+
+      <!-- Card Total & Progress with Modified Layout -->  
+      <div class="card progress-card">  
+        <h3 style="text-align:center;">Poin & Target Mingguan</h3>  
+        <div style="font-size: 2.2em; font-weight: 700; text-align: center; margin-bottom: 20px;" id="totalPoin">0</div>  
+        <div class="target-input-group">  
+            <label for="weeklyTargetInput">Target:</label>  
+            <input type="number" id="weeklyTargetInput" min="0" placeholder="0">  
+        </div>  
+        <div class="progress-container">  
+            <div id="progressBar" class="progress-bar"></div>  
+        </div>  
+        <div id="progressText" class="progress-text">0 / 0 Poin (0%)</div>  
+        
+        <!-- Tombol Reset -->
+        <div class="reset-buttons">
+          <button id="btnResetTarget" class="btn btn-warning"><i class="fa-solid fa-eraser"></i> Reset Target</button>
+          <button id="btnResetData" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i> Reset Data</button>
+        </div>
+      </div>  
+
+      <div class="card">  
+        <!-- Header Tabel Kerjaan -->  
+        <div class="history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">  
+          <h3 style="margin: 0;"><i class="fa-solid fa-list-check"></i> Daftar Kerjaan</h3>  
+          <div>  
+            <button class="btn btn-primary btn-sm" onclick="backupData()" title="Download data kerjaan Anda"><i class="fas fa-download"></i> Backup</button>  
+            <button class="btn btn-warning btn-sm" onclick="document.getElementById('importFileInput').click()" title="Restore data dari file backup"><i class="fas fa-upload"></i> Restore</button>  
+            <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="restoreData(event)">  
+            <button id="btnToggleHistory" class="btn btn-sm btn-info" style="min-width: 40px;" title="Tampilkan/Sembunyikan Daftar">  
+              <i class="fas fa-eye"></i>  
+            </button>  
+          </div>  
+        </div>  
+        <!-- Tabel Kerjaan -->  
+        <div id="historyTableContainer" style="overflow-x: auto;">  
+          <table id="tabelKerjaan">  
+            <thead><tr><th style="width:30%">Tanggal</th><th style="width:45%">Paket</th><th style="width:25%">Poin</th></tr></thead>  
+            <tbody><!-- Data Kerjaan Dimasukkan di Sini --></tbody>  
+          </table>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- Konten Tab: Grafik -->  
+    <div id="chartTab" class="tabcontent">  
+      <h3><i class="fa-solid fa-chart-pie"></i> Proporsi Layanan</h3>  
+      <canvas id="layananChart"></canvas>  
+    </div>  
+
+    <!-- Konten Tab: Statistik -->  
+    <div id="statTab" class="tabcontent">  
+      <h3><i class="fa-solid fa-calendar-days"></i> Statistik Poin</h3>  
+      <div style="font-size:1.1em; padding:14px 0; line-height: 2;">  
+        <div><span class="stat-label">Poin Hari Ini: </span><span id="statHarian">0</span></div>  
+        <div><span class="stat-label">Poin Minggu Ini: </span><span id="statMingguan">0</span></div>  
+        <div><span class="stat-label">Poin Bulan Ini: </span><span id="statBulanan">0</span></div>  
+      </div>
+      
+      <!-- Statistik per Layanan dengan Total -->
+      
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+      <h4 style="margin: 0; color: var(--primary); font-weight: 600;"><i class="fa-solid fa-tags"></i> Statistik per Layanan</h4>
+      <button id="toggleLayananStatsBtn" class="btn btn-sm btn-info" style="font-size: 0.8em;">
+        Sembunyikan
+      </button>
+    </div>
+    <div id="layananStats" class="layanan-stats">
+    
+        <h4><i class="fa-solid fa-tags"></i> Statistik per Layanan</h4>
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Layanan</th>
+              <th>Jumlah</th>
+              <th>Total Poin</th>
+            </tr>
+          </thead>
+          <tbody id="layananStatsBody">
+            <!-- Data statistik layanan akan ditampilkan di sini -->
+          </tbody>
+          <tfoot>
+            <tr class="stats-total-row">
+              <td><strong>TOTAL</strong></td>
+              <td id="totalLayananCount"><strong>0</strong></td>
+              <td id="totalLayananPoin"><strong>0</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>  
+  </div> <!-- Akhir .container #mainApp -->  
+
+  <!-- Library Chart.js -->  
+    
+
+  <!-- Script Aplikasi Utama -->  
+    
+
+    <!-- Firebase SDK -->
+    
+    </body>
+      
+</html>
